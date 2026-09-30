@@ -3,9 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"rest_api/internal/model"
 	"rest_api/internal/service"
-	"strconv"
 )
 
 type UserHandler struct{

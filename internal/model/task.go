@@ -1,0 +1,10 @@
+package model
+
+
+type Task struct {
+	ID          int    `json:"id"`
+	ProjectID   int    `json:"project_id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Done        bool   `json:"done"`
+}

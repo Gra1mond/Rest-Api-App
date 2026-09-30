@@ -8,59 +8,114 @@ import (
 	"strconv"
 )
 
-type TaskHandler struct {
+type TaskHandler struct{
 	service *service.TaskService
 }
 
-func NewHandler(service *service.TaskService)*TaskHandler{
+func NewTaskHandler(service *service.TaskService)*TaskHandler{
 	return &TaskHandler{
 		service: service,
 	}
 }
 
-func (h *TaskHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	idStr := r.PathValue("id")
+func (h *TaskHandler)Create(w http.ResponseWriter, r *http.Request){
+	projectIDStr:=r.PathValue("projectID")
 
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		http.Error(w, "invalid id", http.StatusBadRequest)
+	projectID,err:=strconv.Atoi(projectIDStr)
+
+	if err!=nil{
+		http.Error(w,"invalid project id",http.StatusBadRequest)
 		return
 	}
 
-	task, err := h.service.GetByID(id)
+	var task model.Task
 
-	if err != nil {
-		http.Error(w, "task not found", http.StatusNotFound)
+	if err:=json.NewDecoder(r.Body).Decode(&task);err!=nil{
+		http.Error(w,"invalid body",http.StatusBadRequest)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
+	createdTask,err:=h.service.Create(r.Context(),
+	task,
+	projectID)
+	if err!=nil{
+		http.Error(w,err.Error(),http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-Type","application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(createdTask)
+}
+
+func (h *TaskHandler)GetByProjectID(w http.ResponseWriter,r *http.Request){
+	projectIDStr:=r.PathValue("projectID")
+
+	projectID,err:=strconv.Atoi(projectIDStr)
+	if err!=nil{
+		http.Error(w,"invalid project id",http.StatusBadRequest)
+		return
+	}
+	task,err:=h.service.GetByProjectID(r.Context(),projectID)
+	if err!=nil{
+		http.Error(w,err.Error(),http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type","application/json")
 	json.NewEncoder(w).Encode(task)
 }
 
-func (h *TaskHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	tasks, err := h.service.GetAll()
-	if err != nil {
-		http.Error(w, "failed to get tasks", http.StatusInternalServerError)
+func (h *TaskHandler)GetByID(w http.ResponseWriter, r *http.Request){
+	taskIDStr:=r.PathValue("id")
+	taskID,err:=strconv.Atoi(taskIDStr)
+
+	if err!=nil{
+		http.Error(w,"invalid id",http.StatusBadRequest)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(tasks)
+	task,err:=h.service.GetByID(r.Context(),taskID)
+
+	if err!=nil{
+		http.Error(w,err.Error(),http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type","application/json")
+	json.NewEncoder(w).Encode(task)
 }
 
-func (h *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var task model.Task
-	err := json.NewDecoder(r.Body).Decode(&task)
+func(h *TaskHandler)Update(w http.ResponseWriter, r *http.Request){
+	var req model.Task
 
-	if err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
+	err:=json.NewDecoder(r.Body).Decode(&req)
+
+	if err!=nil{
+		http.Error(w,"invalid request body",http.StatusBadRequest)
 		return
 	}
-	createdTask, err := h.service.Create(task)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	task,err:=h.service.Update(r.Context(),req)
+	if err!=nil{
+		http.Error(w,err.Error(),http.StatusBadRequest)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(createdTask)
+	w.Header().Set("Content-Type","application/json")
+	w.WriteHeader(http.StatusAccepted)
+	json.NewEncoder(w).Encode(task)
+}
+
+func (h *TaskHandler)Delete(w http.ResponseWriter, r *http.Request){
+	taskIDStr:=r.PathValue("id")
+
+	taskID,err:=strconv.Atoi(taskIDStr)
+	if err!=nil{
+		http.Error(w,"invalid id",http.StatusBadRequest)
+		return
+	}
+	deleteError:=h.service.Delete(r.Context(),taskID)
+	if deleteError!=nil{
+		http.Error(w,deleteError.Error(),http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type","application/json")
+	w.WriteHeader(http.StatusAccepted)
 }

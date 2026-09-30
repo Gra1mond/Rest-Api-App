@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"rest_api/internal/model"
 
 	"github.com/jackc/pgx/v5"
@@ -9,6 +10,12 @@ import (
 
 type ProjectRepository struct{
 	db *pgx.Conn
+}
+
+func NewProjectRepository(db *pgx.Conn)*ProjectRepository{
+	return &ProjectRepository{
+		db: db,
+	}
 }
 
 func (r *ProjectRepository)Create(ctx context.Context,
@@ -59,3 +66,18 @@ project model.Project)(model.Project,error){
 	}
 	return project,nil
 }
+
+func (r *ProjectRepository)Delete(ctx context.Context,
+	id int)error{
+		result,err:=r.db.Exec(ctx,
+		`DELETE FROM projects
+		WHERE id = $1`,
+	id)
+	if err!=nil{
+		return err
+	}
+	if result.RowsAffected()==0{
+		return errors.New("project not found")
+	}
+	return nil
+	}

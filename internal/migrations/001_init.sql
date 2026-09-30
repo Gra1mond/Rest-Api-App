@@ -1,6 +1,7 @@
-CREATE TABLE  IF NOT EXISTS users(
-    id serial primary key,
-    email VARCHAR(255) UNIQUE NOT NULL
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS projects(

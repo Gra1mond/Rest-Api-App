@@ -11,7 +11,11 @@ type UserRepository struct{
 	db *pgx.Conn
 }
 
-func NewUserRepository(db *pgx.Conn)
+func NewUserRepository(db *pgx.Conn)(*UserRepository){
+	return &UserRepository{
+		db: db,
+	}
+}
 
 func (r *UserRepository)Create(ctx context.Context,
 	user model.User,)(model.User,error){

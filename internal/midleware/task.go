@@ -13,14 +13,14 @@ func Logger(next http.Handler) http.Handler {
 	})
 }
 
-func Auth(next http.Handler) http.Handler{
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token:=r.Header.Get("Authorization")
+// func Auth(next http.Handler) http.Handler{
+// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 		token:=r.Header.Get("Authorization")
 
-		if token==""{
-			http.Error(w,"unauthorized",http.StatusUnauthorized)
-			return 
-		}
-		next.ServeHTTP(w,r)
-	})
-}
+// 		if token==""{
+// 			http.Error(w,"unauthorized",http.StatusUnauthorized)
+// 			return 
+// 		}
+// 		next.ServeHTTP(w,r)
+// 	})
+// }

@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"rest_api/internal/midleware"
 	"rest_api/internal/model"
 	"rest_api/internal/service"
 	"strconv"
@@ -28,7 +29,11 @@ func (h *ProjectHandler)Create(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
-	userID := 1// достаём из context после Auth middleware
+	userID,ok:=midleware.GetUserID(r.Context())
+	if !ok{
+		http.Error(w,"unuathorized",http.StatusUnauthorized)
+		return
+	}
 
 	project, err := h.service.Create(
 		r.Context(),
@@ -56,7 +61,11 @@ func(h *ProjectHandler)GetByID(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
-	userID := 1// из r.Context()
+	userID,ok:=midleware.GetUserID(r.Context())
+	if !ok{
+		http.Error(w,"unuathorized",http.StatusUnauthorized)
+		return
+	}
 
 	project, err := h.service.GetByID(
 		r.Context(),
@@ -76,7 +85,11 @@ func (h *ProjectHandler) GetByUserID(
 	w http.ResponseWriter,
 	r *http.Request,
 ) {
-	userID :=1 // достаём из r.Context()
+	userID,ok:=midleware.GetUserID(r.Context())
+	if !ok{
+		http.Error(w,"unuathorized",http.StatusUnauthorized)
+		return
+	}
 
 	projects, err := h.service.GetByUserID(
 		r.Context(),
@@ -110,7 +123,11 @@ func(h *ProjectHandler)Update(w http.ResponseWriter, r *http.Request){
 
 	req.ID=projectID
 
-	userID:=1//из r.Contex()
+	userID,ok:=midleware.GetUserID(r.Context())
+	if !ok{
+		http.Error(w,"unuathorized",http.StatusUnauthorized)
+		return
+	}
 
 	project,err:=h.service.Update(r.Context(),
 		userID,
@@ -135,7 +152,11 @@ func (h *ProjectHandler) Delete(
 		return
 	}
 
-	userID :=1 // из r.Context()
+	userID,ok:=midleware.GetUserID(r.Context())
+	if !ok{
+		http.Error(w,"unuathorized",http.StatusUnauthorized)
+		return
+	}
 
 	err = h.service.Delete(
 		r.Context(),

@@ -3,8 +3,11 @@ package service
 import (
 	"context"
 	"errors"
+	"rest_api/internal/auth"
 	"rest_api/internal/model"
 	"rest_api/internal/repository"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct{
@@ -31,12 +34,49 @@ func (s *UserService) Register(
 		return model.User{}, errors.New("password is required")
 	}
 
-	// Здесь позже захешируем password
+	hash,err:=bcrypt.GenerateFromPassword(
+		[]byte(password),
+		bcrypt.DefaultCost,
+	)
+	if err!=nil{
+		return model.User{},err
+	}
 
 	user := model.User{
 		Email:        email,
-		PasswordHash: password, // ВРЕМЕННО! Потом здесь будет hash
+		PasswordHash: string(hash), 
 	}
 
 	return s.repo.Create(ctx, user)
+}
+
+func (s *UserService) Login(
+	ctx context.Context,
+	email string,
+	password string,
+) (string, error) {
+
+	if email == "" || password == "" {
+		return "", errors.New("email and password are required")
+	}
+
+	user, err := s.repo.GetByEmail(ctx, email)
+	if err != nil {
+		return "", errors.New("invalid email or password")
+	}
+
+	err = bcrypt.CompareHashAndPassword(
+		[]byte(user.PasswordHash),
+		[]byte(password),
+	)
+	if err != nil {
+		return "", errors.New("invalid email or password")
+	}
+
+	token, err := auth.GenerateToken(user.ID)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }

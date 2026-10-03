@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"rest_api/internal/midleware"
 	"rest_api/internal/model"
 	"rest_api/internal/service"
 	"strconv"
@@ -34,7 +35,13 @@ func (h *TaskHandler)Create(w http.ResponseWriter, r *http.Request){
 		http.Error(w,"invalid body",http.StatusBadRequest)
 		return
 	}
+	userID,ok:=midleware.GetUserID(r.Context())
+	if !ok{
+		http.Error(w,"unuathorized",http.StatusUnauthorized)
+		return
+	}
 	createdTask,err:=h.service.Create(r.Context(),
+	userID,
 	task,
 	projectID)
 	if err!=nil{
@@ -54,7 +61,13 @@ func (h *TaskHandler)GetByProjectID(w http.ResponseWriter,r *http.Request){
 		http.Error(w,"invalid project id",http.StatusBadRequest)
 		return
 	}
-	task,err:=h.service.GetByProjectID(r.Context(),projectID)
+	userID,ok:=midleware.GetUserID(r.Context())
+	if !ok{
+		http.Error(w,"unuathorized",http.StatusUnauthorized)
+		return
+	}
+
+	task,err:=h.service.GetByProjectID(r.Context(),userID,projectID)
 	if err!=nil{
 		http.Error(w,err.Error(),http.StatusBadRequest)
 		return
@@ -72,7 +85,13 @@ func (h *TaskHandler)GetByID(w http.ResponseWriter, r *http.Request){
 		http.Error(w,"invalid id",http.StatusBadRequest)
 		return
 	}
-	task,err:=h.service.GetByID(r.Context(),taskID)
+	userID,ok:=midleware.GetUserID(r.Context())
+	if !ok{
+		http.Error(w,"unuathorized",http.StatusUnauthorized)
+		return
+	}
+
+	task,err:=h.service.GetByID(r.Context(),userID,taskID)
 
 	if err!=nil{
 		http.Error(w,err.Error(),http.StatusBadRequest)
@@ -92,7 +111,13 @@ func(h *TaskHandler)Update(w http.ResponseWriter, r *http.Request){
 		http.Error(w,"invalid request body",http.StatusBadRequest)
 		return
 	}
-	task,err:=h.service.Update(r.Context(),req)
+	userID,ok:=midleware.GetUserID(r.Context())
+	if !ok{
+		http.Error(w,"unuathorized",http.StatusUnauthorized)
+		return
+	}
+
+	task,err:=h.service.Update(r.Context(),userID,req)
 	if err!=nil{
 		http.Error(w,err.Error(),http.StatusBadRequest)
 		return
@@ -110,7 +135,13 @@ func (h *TaskHandler)Delete(w http.ResponseWriter, r *http.Request){
 		http.Error(w,"invalid id",http.StatusBadRequest)
 		return
 	}
-	deleteError:=h.service.Delete(r.Context(),taskID)
+	userID,ok:=midleware.GetUserID(r.Context())
+	if !ok{
+		http.Error(w,"unuathorized",http.StatusUnauthorized)
+		return
+	}
+
+	deleteError:=h.service.Delete(r.Context(),userID,taskID)
 	if deleteError!=nil{
 		http.Error(w,deleteError.Error(),http.StatusBadRequest)
 		return

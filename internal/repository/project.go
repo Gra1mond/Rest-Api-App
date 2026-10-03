@@ -21,7 +21,8 @@ func NewProjectRepository(db *pgx.Conn)*ProjectRepository{
 func (r *ProjectRepository)Create(ctx context.Context,
 project model.Project)(model.Project,error){
 	err:=r.db.QueryRow(ctx,
-	`INSERT INTO project(user_id,name)
+	`INSERT INTO projects(user_id,name)
+	VALUES($1, $2)
 	RETURNING id`,
 project.UserID,
 project.Name).Scan(&project.ID)

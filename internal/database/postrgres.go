@@ -11,7 +11,6 @@ func Connect(ctx context.Context,url string)(*pgx.Conn,error){
 	if err!=nil{
 		return nil,err
 	}
-	defer conn.Close(ctx)
 	return  conn,nil
 }
 

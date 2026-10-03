@@ -52,29 +52,29 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type TaskRepository struct{
+type TaskRepository struct {
 	db *pgx.Conn
 }
 
-func NewTaskRepository(db *pgx.Conn) *TaskRepository{
+func NewTaskRepository(db *pgx.Conn) *TaskRepository {
 	return &TaskRepository{
-		db:db,
+		db: db,
 	}
 }
 
-func  (r *TaskRepository) GetByID(
+func (r *TaskRepository) GetByID(
 	ctx context.Context,
-	id int)(model.Task,error){
-		var task model.Task
-		err:=r.db.QueryRow(ctx,`SELECT id,project_id,description,done
+	id int) (model.Task, error) {
+	var task model.Task
+	err := r.db.QueryRow(ctx, `SELECT id,project_id,title,description,done
 		FROM tasks
-		where id = $1`,id).Scan(&task.ID,
-        &task.ProjectID,
-        &task.Title,
-        &task.Description,
-        &task.Done,)
+		where id = $1`, id).Scan(&task.ID,
+		&task.ProjectID,
+		&task.Title,
+		&task.Description,
+		&task.Done)
 
-		return task,err
+	return task, err
 }
 
 // func (r* TaskRepository)GetAll(ctx context.Context)([]model.Task,error){
@@ -107,66 +107,67 @@ func  (r *TaskRepository) GetByID(
 // 	return tasks,nil
 // }
 
-
-func (r *TaskRepository)Create(
-	ctx context.Context,task model.Task,
-	)(model.Task,error){
-		err:=r.db.QueryRow(ctx,
+func (r *TaskRepository) Create(
+	ctx context.Context, task model.Task,
+) (model.Task, error) {
+	err := r.db.QueryRow(ctx,
 		`INSERT INTO TASKS(project_id,title,description,done)
 		VALUES($1,$2,$3,$4)
 		RETURNING id`,
-	task.ProjectID,
-task.Title,
-task.Description,
-task.Done).Scan(&task.ID)
-return task,err
+		task.ProjectID,
+		task.Title,
+		task.Description,
+		task.Done).Scan(&task.ID)
+	return task, err
 }
 
-func (r *TaskRepository)GetByProjectID(
+func (r *TaskRepository) GetByProjectID(
 	ctx context.Context,
 	projectID int,
-)([]model.Task,error){
-	rows,err:=r.db.Query(ctx,
-	`SELECT id,project_id,title,description,done
+) ([]model.Task, error) {
+	rows, err := r.db.Query(ctx,
+		`SELECT id,project_id,title,description,done
 	FROM tasks
 	WHERE project_id=$1`,
-projectID)
-	if err!=nil{
-		return nil,err
+		projectID)
+	if err != nil {
+		return nil, err
 	}
 	var tasks []model.Task
 
-	for rows.Next(){
+	for rows.Next() {
 		var task model.Task
-		if err:=rows.Scan(
+		if err := rows.Scan(
 			&task.ID,
 			&task.ProjectID,
-        	&task.Title,
-        	&task.Description,
-        	&task.Done,
-		);err!=nil{
-			return nil,err
+			&task.Title,
+			&task.Description,
+			&task.Done,
+		); err != nil {
+			return nil, err
 		}
-		tasks=append(tasks, task)
+		tasks = append(tasks, task)
 	}
-	if err:=rows.Err();err!=nil{
-		return nil,err
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
-	return tasks,nil
+	return tasks, nil
 }
 
-func (r *TaskRepository)Update(
+func (r *TaskRepository) Update(
 	ctx context.Context,
-	task model.Task)(model.Task,error){
-	err:=r.db.QueryRow(ctx,
-	`UPDATE tasks
+	task model.Task) (model.Task, error) {
+	err := r.db.QueryRow(ctx,
+		`UPDATE tasks
 	SET title = $1,
 		description = $2,
 		done = $3
+		WHERE id = $4
 		RETURNING id, project_id, title, description, done`,
-	task.Title,
-	task.Description,
-	task.Done).Scan(
+		task.Title,
+		task.Description,
+		task.Done,
+		task.ID).Scan(
 		&task.ID,
 		&task.ProjectID,
 		&task.Title,
@@ -174,26 +175,25 @@ func (r *TaskRepository)Update(
 		&task.Done,
 	)
 
-	if err!=nil{
-		return model.Task{},err
+	if err != nil {
+		return model.Task{}, err
 	}
-	return task,nil
+	return task, nil
 }
 
-func (r *TaskRepository)Delete(
+func (r *TaskRepository) Delete(
 	ctx context.Context,
 	id int,
-)error{
-	result,err:=r.db.Exec(ctx,
-	`DELETE FROM tasks
+) error {
+	result, err := r.db.Exec(ctx,
+		`DELETE FROM tasks
 	WHERE id = $1`,
-	id)
-	if err!=nil{
+		id)
+	if err != nil {
 		return err
 	}
-	if result.RowsAffected()==0{
+	if result.RowsAffected() == 0 {
 		return errors.New("task not found")
 	}
 	return nil
 }
-

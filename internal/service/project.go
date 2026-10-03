@@ -41,7 +41,7 @@ ProjectID int)(model.Project,error){
 }
 
 func (s *ProjectService)GetByUserID(ctx context.Context,
-UserId int)(model.Project,error){
+UserId int)([]model.Project,error){
 	return s.repo.GetByUserID(ctx,UserId)
 }
 

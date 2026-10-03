@@ -33,10 +33,10 @@ func (r *ProjectRepository) GetByID(ctx context.Context,
 	id int) (model.Project, error) {
 	var project model.Project
 	err := r.db.QueryRow(ctx,
-		`SELECT user_id,name
+		`SELECT id,user_id,name
 	FROM projects
 	WHERE id = $1`,
-		id).Scan(&project.UserID, &project.Name)
+		id).Scan(&project.ID, &project.UserID, &project.Name)
 	return project, err
 }
 

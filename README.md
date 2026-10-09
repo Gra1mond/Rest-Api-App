@@ -81,19 +81,29 @@ Authorization: Bearer <token>
 psql -U postgres -d taskmanager -f internal/migrations/001_init.sql
 ```
 
-### 2. Проверьте строку подключения
+### 2. Настройте переменные окружения
 
-Сейчас параметры подключения указаны в `cmd/api/main.go`:
+Создайте локальный файл `.env` на основе примера:
 
-```text
-postgres://postgres:1@localhost:5432/taskmanager
+```bash
+cp .env.example .env
 ```
 
-Перед запуском замените пользователя и пароль на значения своей локальной установки PostgreSQL.
+Укажите в `.env` данные своей базы PostgreSQL и секрет для подписи JWT:
+
+```dotenv
+DATABASE_URL=postgres://user:password@localhost:5432/taskmanager
+JWT_SECRET=replace-with-a-long-random-secret
+```
+
+`.env` исключён из Git. Не добавляйте в него примерный пароль или секрет при реальном использовании. Приложение читает переменные окружения, но не загружает `.env` автоматически.
 
 ### 3. Запустите сервер
 
 ```bash
+set -a
+source .env
+set +a
 go run ./cmd/api
 ```
 
@@ -128,7 +138,6 @@ curl -X POST http://localhost:8080/projects \
 
 ## Что можно улучшить
 
-- вынести строку подключения и секрет JWT в переменные окружения;
 - добавить graceful shutdown HTTP-сервера;
 - добавить unit- и интеграционные тесты;
 - описать API в OpenAPI/Swagger;

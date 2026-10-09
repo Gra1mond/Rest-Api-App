@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"rest_api/internal/database"
 	"rest_api/internal/handler"
 	"rest_api/internal/midleware"
@@ -15,9 +16,9 @@ func main(){
 	mux:=http.NewServeMux()
 	ctx:=context.Background()
 
-	conn,err:=database.Connect(ctx,
-		"postgres://postgres:1@localhost:5432/taskmanager",
-	)
+	databaseURL := os.Getenv("DATABASE_URL")
+
+	conn, err := database.Connect(ctx, databaseURL)
 	if err != nil {
 		log.Fatal(err)
 	}
